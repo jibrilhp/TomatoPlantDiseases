@@ -7,9 +7,31 @@ import model
 app = Flask(__name__, template_folder='Template')
 Bootstrap(app)
 
+# Initialize Firestore DB
+import firebase_admin
+from firebase_admin import credentials, firestore, initialize_app
+
+cred = credentials.Certificate("bangkit-finalproject-firebase-adminsdk-v8dc7-218c11fe14.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+tomato_ref = db.collection('bangkit_tomato')
+
 """
 Routes
 """
+@app.route('/test',methods=['GET'])
+def test_firebase():
+    try:
+        tomato_ref.document('1').set({'s':'s'} )
+        return "ok"
+    except Exception as e:
+        print("err")
+        return "hmm " + str(e)
+
+@app.route('/predict',methods=['GET'])
+def predict():
+    return render_template('predict.html')
+
 @app.route('/', methods=['GET','POST'])
 def index():
     if request.method == 'POST':
