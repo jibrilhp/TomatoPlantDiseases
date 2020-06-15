@@ -40,7 +40,8 @@ def read_firebase():
         results = query.stream()
         for doc in results:
             print(doc.get('timestamp'))
-            print(doc.get('name')) 
+            print(doc.get('file_path')) 
+            print(doc.id)
         return "ok " 
         
     except Exception as e:
@@ -49,6 +50,16 @@ def read_firebase():
 @app.route('/predict',methods=['GET'])
 def predict():
     return render_template('predict.html')
+
+@app.route('/mini_encyclopedia/<topics>',methods=['GET']) 
+def encyclopedia(topics):
+    print(topics)
+    return "ok"
+
+@app.route('/report/<id>',methods=['GET'])
+def report(id):
+    print(id)
+    return "ok"
 
 @app.route('/', methods=['GET','POST'])
 def index():
@@ -78,7 +89,7 @@ def index():
     data_dict_history = {}
 
     for doc in results:
-        data_dict_history[doc.get('timestamp')] = [doc.get('file_path'),doc.get('predict_class')]
+        data_dict_history[doc.get('timestamp')] = [doc.get('file_path'),doc.get('predict_class'),doc.id]
     
     print(data_dict_history)
     return render_template('index.html', result_dict = data_dict_history)

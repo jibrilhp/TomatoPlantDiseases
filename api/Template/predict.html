@@ -1,7 +1,9 @@
-{% include "menu.html" %}
+{% extends "base.html" %}
+
 
 {% block content %}
-<body class="bg-light">
+{% include "menu.html" %}
+<!-- <body class="bg-light"> -->
 
     <div class="container">
       <h1>Upload File</h1>
@@ -15,5 +17,5 @@
         </div>
       </form>
     </div>
-   </body>
+   <!-- </body> -->
 {% endblock %}
