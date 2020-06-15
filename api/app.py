@@ -1,8 +1,10 @@
 from flask import Flask, render_template, url_for, request, redirect
 from flask_bootstrap import Bootstrap
+from datetime import datetime
 
 import os
 import model
+import random
 
 app = Flask(__name__, template_folder='Template')
 Bootstrap(app)
@@ -22,11 +24,27 @@ Routes
 @app.route('/test',methods=['GET'])
 def test_firebase():
     try:
-        tomato_ref.document('1').set({'s':'s'} )
+        now_timestamp = datetime.now()
+        tomato_ref.document().set({'name':'pung ' + str(random.randrange(100)),'timestamp':str(datetime.timestamp(now_timestamp))} )
+         
         return "ok"
     except Exception as e:
         print("err")
         return "hmm " + str(e)
+
+@app.route('/test2',methods=['GET'])
+def read_firebase():
+    try:
+        query = tomato_ref.order_by('timestamp', direction=firestore.Query.DESCENDING).limit(5)
+        
+        results = query.stream()
+        for doc in results:
+            print(doc.get('timestamp'))
+            print(doc.get('name')) 
+        return "ok " 
+        
+    except Exception as e:
+        return "hmm2 " + str(e)
 
 @app.route('/predict',methods=['GET'])
 def predict():
@@ -34,8 +52,10 @@ def predict():
 
 @app.route('/', methods=['GET','POST'])
 def index():
+    now_timestamp = datetime.now()
     if request.method == 'POST':
         uploaded_file = request.files['file']
+        
         if uploaded_file.filename != '':
             image_path = os.path.join('static', uploaded_file.filename)
             uploaded_file.save(image_path)
@@ -44,8 +64,24 @@ def index():
                 'class_name': class_name,
                 'image_path': image_path,
             }
+
+            filename_data_save =  image_path
+            predict_class = class_name 
+
+            tomato_ref.document().set({'predict_class': predict_class,'file_path':filename_data_save,'timestamp':str(datetime.timestamp(now_timestamp))} )
+         
             return render_template('result.html', result = result)
-    return render_template('index.html')
+    
+    query = tomato_ref.order_by('timestamp', direction=firestore.Query.DESCENDING).limit(5)
+        
+    results = query.stream()
+    data_dict_history = {}
+
+    for doc in results:
+        data_dict_history[doc.get('timestamp')] = [doc.get('file_path'),doc.get('predict_class')]
+    
+    print(data_dict_history)
+    return render_template('index.html', result_dict = data_dict_history)
 
 if __name__ == '__main__':
     app.run(debug = True)
